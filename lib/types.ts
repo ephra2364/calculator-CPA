@@ -29,6 +29,8 @@ export interface Product {
   unitCostDirect: Num;
   pieceCost?: Num; // mode simple : prix d'achat de la pièce (usine)
   importPerPiece?: Num; // mode simple : importation par pièce
+  targetMarginPct?: Num; // objectif de marge nette (%)
+  monthlyProfitTarget?: Num; // objectif de bénéfice du mois
 
   // Frais opérationnels (par commande / livraison)
   closingCost: Num;
