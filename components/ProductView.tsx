@@ -11,10 +11,11 @@ import { HistoryView } from './HistoryView';
 import { SummaryView, CpaView, ProfitView, DeliveryView, MarginView } from './Modules';
 import { DeadzoneView } from './DeadzoneView';
 import { OptimizerView, ScalingView } from './Simulators';
+import { QuickView } from './QuickView';
 
-export type Tab = 'resume' | 'infos' | 'resultats' | 'cpa' | 'rentabilite' | 'livraison' | 'marge' | 'deadzone' | 'optimisation' | 'scaling';
+export type Tab = 'rapide' | 'resume' | 'infos' | 'resultats' | 'cpa' | 'rentabilite' | 'livraison' | 'marge' | 'deadzone' | 'optimisation' | 'scaling';
 const TABS: [Tab, string][] = [
-  ['resume', 'Diagnostic'], ['infos', 'Produit & coûts'], ['resultats', 'Résultats & historique'], ['cpa', 'CPA Calculator'],
+  ['rapide', 'Rentabilité'], ['resume', 'Diagnostic'], ['infos', 'Produit & coûts'], ['resultats', 'Résultats & historique'], ['cpa', 'CPA Calculator'],
   ['rentabilite', 'Profit Analyzer'], ['livraison', 'Livraison'], ['marge', 'Marge'], ['deadzone', 'Deadzone'],
   ['optimisation', 'Optimisation'], ['scaling', 'Scaling']
 ];
@@ -32,7 +33,8 @@ export function ProductView({ store, product, tab, setTab, back }: { store: Stor
   const dz = useMemo(() => deadzone(product, periods, 7), [product, periods]);
   const diag = useMemo(() => diagnose(analysis, dz), [analysis, dz]);
   const count = periods.filter((p) => p.productId === product.id).length;
-  const showRange = !['infos', 'resultats', 'deadzone'].includes(tab);
+  const showRange = !['rapide', 'infos', 'resultats', 'deadzone'].includes(tab);
+  const advanced = tab !== 'rapide';
 
   return (
     <div className="space-y-4">
@@ -41,7 +43,7 @@ export function ProductView({ store, product, tab, setTab, back }: { store: Stor
           <button onClick={back} className="text-sm text-slate-500 hover:text-slate-800">← Mes produits</button>
           <h1 className="mt-1 truncate text-2xl font-bold tracking-tight">{product.name || 'Sans nom'}</h1>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-            <Pill tone={STATUS_TONE[dz.status]}>{STATUS_LABEL[dz.status]}</Pill>
+            {advanced && <Pill tone={STATUS_TONE[dz.status]}>{STATUS_LABEL[dz.status]}</Pill>}
             <span>{count} période{count > 1 ? 's' : ''} saisie{count > 1 ? 's' : ''}</span>
             {product.isExample && <Pill tone="blue">Exemple</Pill>}
           </div>
@@ -49,13 +51,13 @@ export function ProductView({ store, product, tab, setTab, back }: { store: Stor
         <Button small variant="danger" onClick={() => { if (confirm(`Supprimer « ${product.name} » et toutes ses périodes ?`)) { store.deleteProduct(product.id); back(); } }}>Supprimer</Button>
       </div>
 
-      <div className="-mx-4 overflow-x-auto px-4">
+      {advanced && <div className="-mx-4 overflow-x-auto px-4">
         <div className="flex w-max gap-1 rounded-xl bg-white p-1 ring-1 ring-slate-200">
           {TABS.map(([t, l]) => (
             <button key={t} onClick={() => setTab(t)} className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium ${tab === t ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>{l}</button>
           ))}
         </div>
-      </div>
+      </div>}
 
       {showRange && (
         <div className="flex flex-wrap items-end gap-3 rounded-2xl bg-white p-3 ring-1 ring-slate-200">
@@ -71,6 +73,7 @@ export function ProductView({ store, product, tab, setTab, back }: { store: Stor
         </div>
       )}
 
+      {tab === 'rapide' && <QuickView store={store} product={product} openDetails={() => setTab('resume')} />}
       {tab === 'resume' && <SummaryView a={analysis} dz={dz} diag={diag} setTab={setTab} />}
       {tab === 'infos' && <ProductForm product={product} onChange={store.upsertProduct} periodsCount={count} goResults={() => setTab('resultats')} />}
       {tab === 'resultats' && <HistoryView store={store} product={product} />}

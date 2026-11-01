@@ -30,9 +30,14 @@ export function ProductForm({ product: p, onChange, periodsCount, goResults }: {
       </Card>
 
       <Card title="Coût du produit" subtitle="Choisis UNE méthode : les deux ne sont jamais additionnées.">
-        <Segmented value={p.costMode} onChange={(v) => set({ costMode: v })} options={[['import', 'Détail de l’importation'], ['unit', 'Coût unitaire déjà calculé']]} />
+        <Segmented value={p.costMode} onChange={(v) => set({ costMode: v })} options={[['piece', 'Pièce + importation'], ['import', 'Détail de l’importation'], ['unit', 'Coût unitaire direct']]} />
         <div className="mt-4">
-          {p.costMode === 'import' ? (
+          {p.costMode === 'piece' ? (
+            <Grid>
+              <NumField label="Prix de la pièce (usine)" value={p.pieceCost ?? null} onChange={(v) => set({ pieceCost: v })} suffix={cur} min={0} />
+              <NumField label="Importation par pièce" value={p.importPerPiece ?? null} onChange={(v) => set({ importPerPiece: v })} suffix={cur} min={0} />
+            </Grid>
+          ) : p.costMode === 'import' ? (
             <Grid cols={3}>
               <NumField label="Prix d’achat fournisseur (total)" value={p.importCosts.purchaseTotal} onChange={(v) => setImp({ purchaseTotal: v })} suffix={cur} min={0} />
               <NumField label="Transport international" value={p.importCosts.transport} onChange={(v) => setImp({ transport: v })} suffix={cur} min={0} />

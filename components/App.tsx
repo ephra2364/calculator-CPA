@@ -11,7 +11,7 @@ type Route = { name: 'dashboard' } | { name: 'products' } | { name: 'product'; i
 function parseHash(h: string): Route {
   const parts = h.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (parts[0] === 'produits') return { name: 'products' };
-  if (parts[0] === 'p' && parts[1]) return { name: 'product', id: parts[1], tab: (parts[2] as Tab) || 'resume' };
+  if (parts[0] === 'p' && parts[1]) return { name: 'product', id: parts[1], tab: (parts[2] as Tab) || 'rapide' };
   return { name: 'dashboard' };
 }
 function toHash(r: Route) {
@@ -33,9 +33,9 @@ export default function App() {
 
   const product = route.name === 'product' ? store.data.products.find((p) => p.id === route.id) : undefined;
   const newProduct = () => {
-    const p = emptyProduct({ name: 'Nouveau produit' });
+    const p = emptyProduct({ name: 'Nouveau produit', costMode: 'piece' });
     store.upsertProduct(p);
-    go({ name: 'product', id: p.id, tab: 'infos' });
+    go({ name: 'product', id: p.id, tab: 'rapide' });
   };
   const nav = useMemo(() => [
     { key: 'dashboard', label: 'Tableau de bord', icon: '▦', active: route.name === 'dashboard', onClick: () => go({ name: 'dashboard' }) },
@@ -65,8 +65,8 @@ export default function App() {
       )}
       <main className="mx-auto max-w-6xl px-4 py-5">
         {!store.ready ? <div className="py-20 text-center text-slate-400">Chargement…</div>
-          : route.name === 'dashboard' ? <Dashboard store={store} openProduct={(id, tab = 'resume') => go({ name: 'product', id, tab })} newProduct={newProduct} />
-          : route.name === 'products' ? <ProductsList store={store} open={(id) => go({ name: 'product', id, tab: 'resume' })} newProduct={newProduct} />
+          : route.name === 'dashboard' ? <Dashboard store={store} openProduct={(id, tab = 'rapide') => go({ name: 'product', id, tab })} newProduct={newProduct} />
+          : route.name === 'products' ? <ProductsList store={store} open={(id) => go({ name: 'product', id, tab: 'rapide' })} newProduct={newProduct} />
           : product ? <ProductView key={product.id} store={store} product={product} tab={route.tab} setTab={(tab) => go({ name: 'product', id: product.id, tab })} back={() => go({ name: 'products' })} />
           : <div className="py-20 text-center text-slate-500">Produit introuvable. <button className="underline" onClick={() => go({ name: 'products' })}>Retour aux produits</button></div>}
       </main>

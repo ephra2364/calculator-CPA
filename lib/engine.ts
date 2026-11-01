@@ -46,6 +46,10 @@ export function unitCost(p: Product): UnitCost {
   if (p.costMode === 'unit') {
     return { value: has(p.unitCostDirect) ? p.unitCostDirect : null, method: 'unit', importTotal: null, note: 'Coût unitaire saisi directement.' };
   }
+  if (p.costMode === 'piece') {
+    const ok = has(p.pieceCost ?? null);
+    return { value: ok ? (p.pieceCost as number) + z(p.importPerPiece ?? null) : null, method: 'unit', importTotal: null, note: 'Coût par pièce = prix d’achat de la pièce + importation par pièce.' };
+  }
   const c = p.importCosts;
   const anyCost = [c.purchaseTotal, c.transport, c.customs, c.transit, c.other].some(has);
   const total = anyCost ? z(c.purchaseTotal) + z(c.transport) + z(c.customs) + z(c.transit) + z(c.other) : null;
@@ -160,10 +164,13 @@ export function aggregate(product: Product, periods: Period[], window?: { start:
     // Commandes
     const o = p.orders;
     if ([o.received, o.confirmed, o.shipped, o.delivered].some(has)) t.hasOrders = true;
-    const received = z(o.received) * f, confirmed = z(o.confirmed) * f, delivered = z(o.delivered) * f;
+    const received = z(o.received) * f, delivered = z(o.delivered) * f;
+    // Saisie simple : confirmées non renseignées → toutes les commandes sont considérées confirmées
+    const confirmed = has(o.confirmed) ? o.confirmed * f : received;
     const refused = z(o.refused) * f, unreachable = z(o.unreachable) * f, returned = z(o.returned) * f;
-    // Expédiées : saisies, sinon livrées + échecs connus
-    const shipped = has(o.shipped) ? o.shipped * f : delivered + refused + unreachable + returned;
+    // Expédiées : saisies, sinon livrées + échecs détaillés, sinon toutes les confirmées
+    const detail = [o.refused, o.unreachable, o.returned].some(has);
+    const shipped = has(o.shipped) ? o.shipped * f : detail ? delivered + refused + unreachable + returned : Math.max(confirmed, delivered);
     const failed = Math.max(0, shipped - delivered);
     t.received += received; t.confirmed += confirmed; t.shipped += shipped; t.delivered += delivered; t.failed += failed;
     t.refused += refused; t.unreachable += unreachable; t.returned += returned; t.cancelled += z(o.cancelled) * f;

@@ -4,7 +4,7 @@
 
 export type Num = number | null;
 
-export type CostMode = 'import' | 'unit';
+export type CostMode = 'import' | 'unit' | 'piece';
 export type ClosingScope = 'all' | 'confirmed';
 
 export interface Product {
@@ -27,6 +27,8 @@ export interface Product {
     quantity: Num;
   };
   unitCostDirect: Num;
+  pieceCost?: Num; // mode simple : prix d'achat de la pièce (usine)
+  importPerPiece?: Num; // mode simple : importation par pièce
 
   // Frais opérationnels (par commande / livraison)
   closingCost: Num;
